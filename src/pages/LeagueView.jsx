@@ -285,7 +285,10 @@ export default function LeagueView({ leagueId, onBack }) {
     return true
   })
 
+  // Cumul par membre : chaque semaine = moyenne des votes de la semaine. Le total
+  // cumule ces moyennes (pas le nombre de jurés, sinon la semaine la plus jugée gagnerait).
   const rankingMap = {}
+  const CRIT_KEYS = CRITERIA.map(c => c.id)
   filteredRatings.forEach(r => {
     const weekNum = r.week_number || currentWeek
     const scheduleItem = fullSchedule.find(s => s.week_number === weekNum)
@@ -293,36 +296,33 @@ export default function LeagueView({ leagueId, onBack }) {
     const bakerName = scheduleItem?.profiles?.username || r.profiles?.username || 'Collègue'
 
     if (!rankingMap[bakerId]) {
-      rankingMap[bakerId] = {
-        username: bakerName,
-        totalScore: 0,
-        count: 0,
-        taste: 0,
-        texture: 0,
-        appearance: 0,
-        baking: 0,
-        indulgence: 0
-      }
+      rankingMap[bakerId] = { username: bakerName, weeks: {} }
+      CRIT_KEYS.forEach(c => { rankingMap[bakerId][c] = 0 })
     }
-
-    rankingMap[bakerId].totalScore += Number(r.score || 0)
-    rankingMap[bakerId].taste += Number(r.taste || 0)
-    rankingMap[bakerId].texture += Number(r.texture || 0)
-    rankingMap[bakerId].appearance += Number(r.appearance || 0)
-    rankingMap[bakerId].baking += Number(r.baking || 0)
-    rankingMap[bakerId].indulgence += Number(r.indulgence || 0)
-    rankingMap[bakerId].count += 1
+    const entry = rankingMap[bakerId]
+    CRIT_KEYS.forEach(c => { entry[c] += Number(r[c] || 0) })
+    if (!entry.weeks[weekNum]) entry.weeks[weekNum] = []
+    entry.weeks[weekNum].push(Number(r.score || 0))
   })
 
-  const leaderboard = Object.values(rankingMap).map(entry => ({
-    username: entry.username,
-    avgGlobal: (entry.totalScore / entry.count).toFixed(1),
-    taste: (entry.taste / entry.count).toFixed(1),
-    texture: (entry.texture / entry.count).toFixed(1),
-    appearance: (entry.appearance / entry.count).toFixed(1),
-    baking: (entry.baking / entry.count).toFixed(1),
-    indulgence: (entry.indulgence / entry.count).toFixed(1),
-  })).sort((a, b) => b.avgGlobal - a.avgGlobal)
+  const leaderboard = Object.values(rankingMap).map(entry => {
+    const weekMeans = Object.values(entry.weeks).map(w => w.reduce((a, b) => a + b, 0) / w.length)
+    const nWeeks = weekMeans.length
+    const nVotes = Object.values(entry.weeks).reduce((a, w) => a + w.length, 0)
+    const total = nWeeks ? weekMeans.reduce((a, b) => a + b, 0) : 0
+    const critAvg = c => (nVotes ? (entry[c] / nVotes).toFixed(1) : '0.0')
+    return {
+      username: entry.username,
+      weeks: nWeeks,
+      total,
+      avgGlobal: nWeeks ? (total / nWeeks).toFixed(1) : '0.0',
+      taste: critAvg('taste'),
+      texture: critAvg('texture'),
+      appearance: critAvg('appearance'),
+      baking: critAvg('baking'),
+      indulgence: critAvg('indulgence'),
+    }
+  }).sort((a, b) => b.avgGlobal - a.avgGlobal)
 
   const leagueGlobalAverage = filteredRatings.length > 0
     ? (filteredRatings.reduce((acc, r) => acc + Number(r.score || 0), 0) / filteredRatings.length).toFixed(1)
@@ -588,33 +588,44 @@ export default function LeagueView({ leagueId, onBack }) {
                 <p className="text-xs text-[var(--faint)] italic py-6 text-center">Aucune note validée pour l'instant. Personne n'a encore pris de risque en cuisine !</p>
               ) : (
                 <div className="space-y-3.5">
-                  {leaderboard.map((entry, idx) => (
-                    <div key={entry.username} className="p-4 border border-[var(--border)] rounded-2xl bg-[var(--plate)]/40 space-y-3 shadow-2xs">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2.5 text-[var(--text)] text-xs font-bold">
-                          <span className={`w-7 h-7 rounded-xl flex items-center justify-center font-mono text-xs shadow-2xs ${idx === 0 ? 'bg-[var(--primary)] text-[var(--on-primary)] font-black' : idx === 1 ? 'bg-[var(--accent)] text-[var(--ink)] font-bold' : idx === 2 ? 'bg-[var(--accent-bright)] text-[var(--ink)] font-bold' : 'bg-[var(--plate-3)] text-[var(--primary)]'}`}>
-                            {idx + 1}
-                          </span>
-                          <span className="text-sm font-black text-[var(--ink)]">{entry.username}</span>
-                        </div>
-                        <div className="bg-[var(--primary)] text-[var(--on-primary)] px-3 py-1 rounded-xl text-xs font-black shadow-2xs border border-[var(--primary-deep)]">
-                          {entry.avgGlobal} / 5
-                        </div>
-                      </div>
-
-                      {/* Détail par critères */}
-                      <div className="grid grid-cols-5 gap-1.5 pt-2 border-t border-[var(--border)]/60 text-center">
-                        {CRITERIA.map(crit => (
-                          <div key={crit.id} className="bg-[var(--card)] p-2 rounded-xl border border-[var(--border)] shadow-2xs">
-                            <div className="text-[10px] font-bold text-[var(--muted)] uppercase">{crit.label}</div>
-                            <div className="text-[11px] font-mono font-black text-[var(--primary)] mt-0.5">
-                              {entry[crit.id]}
+                  {leaderboard.map((entry, idx) => {
+                    const podium = idx < 3
+                    return (
+                      <div key={entry.username} className={`p-4 border rounded-2xl space-y-3 shadow-2xs ${podium ? 'bg-gradient-to-b from-[var(--plate-3)] to-[var(--plate-2)]' : 'bg-[var(--plate)]/40'} ${idx === 0 ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]/40' : 'border-[var(--border)]'}`}>
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2.5 text-[var(--text)] text-xs font-bold">
+                            <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-mono text-xs shadow-2xs ${idx === 0 ? 'bg-gradient-to-br from-[var(--accent)] to-[var(--primary)] text-[var(--on-primary)] font-black' : idx === 1 ? 'bg-[var(--accent)] text-[var(--ink)] font-bold' : idx === 2 ? 'bg-[var(--accent-bright)] text-[var(--ink)] font-bold' : 'bg-[var(--plate-3)] text-[var(--primary)]'}`}>
+                              {idx === 0 ? <TrophyIcon className="w-4 h-4" /> : idx + 1}
+                            </span>
+                            <div>
+                              <div className="text-sm font-black text-[var(--ink)]">{entry.username}</div>
+                              <div className="text-[10px] uppercase tracking-wider text-[var(--muted)] font-bold">
+                                {idx === 0 ? 'Maître pâtissier' : idx === 1 ? 'Premier dauphin' : idx === 2 ? 'Troisième cuistot' : 'Compétiteur'} · {entry.weeks} sem.
+                              </div>
                             </div>
                           </div>
-                        ))}
+                          <div className="text-right">
+                            <div className="bg-[var(--primary)] text-[var(--on-primary)] px-3 py-1 rounded-xl text-xs font-black shadow-2xs border border-[var(--primary-deep)]">
+                              {entry.avgGlobal} / 5
+                            </div>
+                            <div className="text-[10px] font-black text-[var(--muted)] mt-1.5">{entry.total} pts cumulés</div>
+                          </div>
+                        </div>
+
+                        {/* Détail par critères */}
+                        <div className="grid grid-cols-5 gap-1.5 pt-2 border-t border-[var(--border)]/60 text-center">
+                          {CRITERIA.map(crit => (
+                            <div key={crit.id} className="bg-[var(--card)] p-2 rounded-xl border border-[var(--border)] shadow-2xs">
+                              <div className="text-[10px] font-bold text-[var(--muted)] uppercase">{crit.label}</div>
+                              <div className="text-[11px] font-mono font-black text-[var(--primary)] mt-0.5">
+                                {entry[crit.id]}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
