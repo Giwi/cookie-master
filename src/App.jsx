@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from './context/AuthContext'
 import { supabase } from './lib/supabaseClient'
+import { Cog6ToothIcon, ArrowRightStartOnRectangleIcon } from '@heroicons/react/24/outline'
 import Auth from './pages/Auth'
 import Hub from './pages/Hub'
 import LeagueView from './pages/LeagueView'
@@ -35,13 +36,13 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-amber-50/30 text-amber-950">
+    <div className="min-h-screen bg-[var(--plate)] text-[var(--ink)]">
       {/* Barre de navigation fixe */}
-      <header className="bg-white border-b border-amber-100 shadow-sm sticky top-0 z-10">
+      <header className="bg-[var(--card)] border-b border-[var(--border)] shadow-sm sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <button
             onClick={handleBackToHub}
-            className="flex items-center gap-2 font-black text-amber-950 text-base sm:text-lg hover:opacity-80 transition cursor-pointer min-w-0"
+            className="flex items-center gap-2 font-black text-[var(--ink)] text-base sm:text-lg hover:opacity-80 transition cursor-pointer min-w-0"
           >
             <span className="shrink-0">🍪</span> <span className="truncate">Cookie Challenge</span>
           </button>
@@ -51,12 +52,12 @@ export default function App() {
               onClick={() => setCurrentView('profile')}
               className={`px-3 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer flex items-center gap-1.5 ${
                 currentView === 'profile'
-                  ? 'bg-amber-800 text-white'
-                  : 'bg-amber-100 text-amber-900 hover:bg-amber-200'
+                  ? 'bg-[var(--primary)] text-[var(--on-primary)] '
+                  : 'bg-[var(--plate-3)] text-[var(--text)] hover:bg-[var(--plate-2)]'
               }`}
               title="Profil"
             >
-              <span>⚙️</span> <span className="hidden sm:inline">Mon Profil</span>
+              <Cog6ToothIcon className="w-4 h-4" /> <span className="hidden sm:inline">Mon Profil</span>
             </button>
 
             <button
@@ -64,7 +65,7 @@ export default function App() {
               className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl font-bold text-xs transition cursor-pointer"
               title="Se déconnecter"
             >
-              <span className="sm:hidden">⏻</span><span className="hidden sm:inline">Déconnexion</span>
+              <ArrowRightStartOnRectangleIcon className="w-4 h-4 sm:hidden" /><span className="hidden sm:inline">Déconnexion</span>
             </button>
           </div>
         </div>

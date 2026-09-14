@@ -4,6 +4,9 @@ import App from './App'
 import { AuthProvider } from './context/AuthContext'
 import './index.css'
 
+const savedTheme = localStorage.getItem('cc-theme')
+if (savedTheme) document.documentElement.dataset.theme = savedTheme
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch((err) => {

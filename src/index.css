@@ -15,8 +15,249 @@
   --color-creme: #FFFBEB;
 }
 
-body {
-  background-color: var(--color-creme);
-  color: var(--color-choco-900);
+/* Fond pointillé : seulement le thème chocolat */
+:root, [data-theme="choco"] {
+  --bg: #FDF8F2;
+  --dot: #E8D8C4;
+  --card: rgba(255, 255, 255, 0.95);
+  --plate: #FAF2EB;
+  --plate-2: #F5EBE1;
+  --plate-3: #EEDCC7;
+  --border: #D9BFA8;
+  --border-soft: #E4D1BE;
+  --border-strong: #C8A88A;
+  --ink: #2A180C;
+  --text: #3D2513;
+  --soft: #734A2C;
+  --muted: #8C6239;
+  --faint: #A68A72;
+  --ghost-1: transparent;
+  --ghost-2: transparent;
+  --ghost-3: transparent;
+  --primary: #5C3A21;
+  --primary-deep: #3D2513;
+  --accent: #D48D47;
+  --accent-bright: #E6A15C;
+  --on-primary: #FDF8F2;
+}
+
+[data-theme="dark"] {
+  --bg: #21140D;
+  --dot: transparent;
+  --card: #2B1E1A;
+  --plate: #2B1D12;
+  --plate-2: #33220F;
+  --plate-3: #3A291B;
+  --border: #5C402C;
+  --border-soft: #4A3324;
+  --border-strong: #6B4A33;
+  --ink: #F5E9DD;
+  --text: #E9D8C7;
+  --soft: #C9A98B;
+  --muted: #B99A7F;
+  --faint: #8F745C;
+  --ghost-1: transparent;
+  --ghost-2: transparent;
+  --ghost-3: transparent;
+  --primary: #E6A15C;
+  --primary-deep: #D48D47;
+  --accent: #E6A15C;
+  --accent-bright: #F0BC7F;
+  --on-primary: #2A180C;
+}
+
+[data-theme="mint"] {
+  --bg: #F2F7F0;
+  --dot: transparent;
+  --card: rgba(255, 255, 255, 0.95);
+  --plate: #EAF3E6;
+  --plate-2: #E0EDDA;
+  --plate-3: #CFE3C6;
+  --border: #BFD6B4;
+  --border-soft: #D2E4C9;
+  --border-strong: #A9C69B;
+  --ink: #23451A;
+  --text: #33542A;
+  --soft: #6E8F60;
+  --muted: #5C7A50;
+  --faint: #8AA77C;
+  --ghost-1: transparent;
+  --ghost-2: transparent;
+  --ghost-3: transparent;
+  --primary: #4B7A3C;
+  --primary-deep: #3A622E;
+  --accent: #6E9F5D;
+  --accent-bright: #8FBF7C;
+  --on-primary: #F2F7F0;
+}
+
+[data-theme="light"] {
+  --bg: #F5F7FA;
+  --dot: transparent;
+  --card: #FFFFFF;
+  --plate: #F0F2F5;
+  --plate-2: #E6EAF0;
+  --plate-3: #DDE3EA;
+  --border: #D0D7DF;
+  --border-soft: #DFE5EC;
+  --border-strong: #B8C2CC;
+  --ink: #17212E;
+  --text: #2A3646;
+  --soft: #4F5D70;
+  --muted: #6B7A8F;
+  --faint: #93A1B2;
+  --ghost-1: transparent;
+  --ghost-2: transparent;
+  --ghost-3: transparent;
+  --primary: #B45309;
+  --primary-deep: #92400E;
+  --accent: #D97706;
+  --accent-bright: #F59E0B;
+  --on-primary: #FFFFFF;
+}
+
+[data-theme="lollipop"] {
+  --bg: #FFF3F8;
+  --dot: transparent;
+  --card: rgba(255, 255, 255, 0.96);
+  --plate: #FFE8F1;
+  --plate-2: #FFDCEA;
+  --plate-3: #FFC9DE;
+  --border: #F3B8CD;
+  --border-soft: #F7C9DA;
+  --border-strong: #E38AA8;
+  --ink: #67152F;
+  --text: #82204A;
+  --soft: #9E3A63;
+  --muted: #B05C82;
+  --faint: #CB8CA6;
+  --ghost-1: transparent;
+  --ghost-2: transparent;
+  --ghost-3: transparent;
+  --primary: #DB2777;
+  --primary-deep: #BE185D;
+  --accent: #EC4899;
+  --accent-bright: #F472B6;
+  --on-primary: #FFFFFF;
+}
+
+[data-theme="lollipop-dark"] {
+  --bg: #0a0a13;
+  --dot: transparent;
+  --card: rgba(255, 255, 255, 0.05);
+  --plate: rgba(28, 24, 50, 0.55);
+  --plate-2: rgba(255, 255, 255, 0.03);
+  --plate-3: rgba(139, 92, 246, 0.14);
+  --border: rgba(255, 255, 255, 0.10);
+  --border-soft: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --ink: #f4f4f8;
+  --text: #e7e3f1;
+  --soft: #c5bede;
+  --muted: rgba(244, 244, 248, 0.62);
+  --faint: rgba(244, 244, 248, 0.40);
+  --ghost-1: rgba(124, 58, 237, 0.28);
+  --ghost-2: rgba(236, 72, 153, 0.16);
+  --ghost-3: transparent;
+  --primary: #8b5cf6;
+  --primary-deep: #ec4899;
+  --accent: #a78bfa;
+  --accent-bright: #ec4899;
+  --on-primary: #FFFFFF;
+}
+
+/* Halo violet / rose derrière l'interface (photobooth) */
+[data-theme="lollipop-dark"] body {
+  background:
+    radial-gradient(900px 520px at 92% -10%, var(--ghost-1), transparent 70%),
+    radial-gradient(800px 540px at -8% 110%, var(--ghost-2), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+/* Panneaux : flou léger + liseré violet subtil */
+[data-theme="lollipop-dark"] [class*="bg-[var(--card)]"],
+[data-theme="lollipop-dark"] [class*="bg-[var(--plate)]"],
+[data-theme="lollipop-dark"] [class*="bg-[var(--plate-2)]"],
+[data-theme="lollipop-dark"] [class*="bg-[var(--plate-3)]"] {
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  border: 1px solid rgba(167, 139, 250, 0.12);
+  box-shadow:
+    0 18px 45px -18px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Menu select : opacité haute pour lisibilité */
+[data-theme="lollipop-dark"] .theme-menu {
+  background-color: rgba(14, 13, 26, 0.97);
+}
+
+[data-theme="glass"] {
+  --bg: #0a0e17;
+  --dot: transparent;
+  --card: rgba(15, 21, 36, 0.72);
+  --plate: rgba(15, 21, 36, 0.55);
+  --plate-2: rgba(20, 28, 48, 0.45);
+  --plate-3: rgba(42, 58, 97, 0.35);
+  --border: #1f2a44;
+  --border-soft: rgba(31, 42, 68, 0.6);
+  --border-strong: #33456e;
+  --ink: #e6eaf2;
+  --text: #cdd5e1;
+  --soft: #aab4c6;
+  --muted: #94a3b8;
+  --faint: #64748b;
+  --ghost-1: rgba(34, 211, 238, 0.12);
+  --ghost-2: rgba(129, 140, 248, 0.12);
+  --ghost-3: rgba(74, 222, 128, 0.07);
+  --primary: #22d3ee;
+  --primary-deep: #818cf8;
+  --accent: #22d3ee;
+  --accent-bright: #818cf8;
+  --on-primary: #081018;
+}
+
+/* Nebuleuse liquide : halos colorés fixes derrière l'interface */
+[data-theme="glass"] body {
+  background:
+    radial-gradient(900px 500px at 12% -8%, var(--ghost-1), transparent 70%),
+    radial-gradient(800px 520px at 95% 12%, var(--ghost-2), transparent 70%),
+    radial-gradient(900px 600px at 50% 110%, var(--ghost-3), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+/* Panneaux verre : blur profond + liseré lumineux + reflet */
+[data-theme="glass"] [class*="bg-[var(--card)]"],
+[data-theme="glass"] [class*="bg-[var(--plate)]"],
+[data-theme="glass"] [class*="bg-[var(--plate-2)]"],
+[data-theme="glass"] [class*="bg-[var(--plate-3)]"] {
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  border: 1px solid rgba(34, 211, 238, 0.10);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 18px 50px -18px rgba(2, 6, 12, 0.75);
+}
+
+/* Bordures de liaison éclat renforcé pour les gros panneaux */
+[data-theme="glass"] .min-h-screen {
+  background: transparent;
+}
+
+/* Menu select : opacité haute même en verre liquide (lisibilité) */
+[data-theme="glass"] .theme-menu {
+  background-color: rgba(11, 16, 26, 0.97);
+}
+
+html, body {
+  background-color: var(--bg);
+  color: var(--text);
   font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+* {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 200ms;
 }
