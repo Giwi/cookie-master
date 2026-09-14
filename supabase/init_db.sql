@@ -238,8 +238,8 @@ begin
     raise exception 'Code introuvable. Vérifie le code partagé par tes collègues.';
   end if;
 
-  if v_league.status <> 'recruiting' then
-    raise exception 'Cette ligue est déjà lancée, la porte des fourneaux est fermée.';
+  if v_league.status not in ('recruiting', 'active') then
+    raise exception 'Cette ligue est terminée ou fermée, les fourneaux sont éteints.';
   end if;
 
   if exists (
