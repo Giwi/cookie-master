@@ -53,28 +53,20 @@ export default function LeagueView({ leagueId, onBack }) {
     setLoading(true)
 
     // Single read: 8 sequential queries collapsed into 1 embed.
-    const { data: leagueData } = await supabase
-      .from('leagues')
-      .select(`
-        *,
-        league_members (
-          user_id,
-          profiles ( id, username )
-        ),
-        league_schedule (
-          *,
-          profiles ( id, username )
-        ),
-        ratings (
-          *,
-          profiles!ratings_user_id_fkey ( id, username )
-        )
-      `)
-      .eq('id', leagueId)
-      .maybeSingle()
+const { data: leagueData, error: leagueError } = await supabase
+  .from('leagues')
+  .select(`...`)
+  .eq('id', leagueId)
+  .maybeSingle()
 
-    setLoading(false)
-    if (!leagueData) return
+setLoading(false)
+
+if (leagueError) {
+  console.error('Chargement ligue :', leagueError)
+  setMessage({ type: 'error', text: `${leagueError.code} — ${leagueError.message}` })
+  return
+}
+if (!leagueData) return
 
     setLeague(leagueData)
 
