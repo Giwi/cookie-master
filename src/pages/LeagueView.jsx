@@ -288,7 +288,7 @@ if (!leagueData) return
     const bakerName = scheduleItem?.profiles?.username || r.profiles?.username || 'Collègue'
 
     if (!rankingMap[bakerId]) {
-      rankingMap[bakerId] = { username: bakerName, weeks: {} }
+      rankingMap[bakerId] = { bakerId, username: bakerName, weeks: {} }
       CRIT_KEYS.forEach(c => { rankingMap[bakerId][c] = 0 })
     }
     const entry = rankingMap[bakerId]
@@ -297,6 +297,20 @@ if (!leagueData) return
     entry.weeks[weekNum].push(Number(r.score || 0))
   })
 
+  // Meilleur cookie de chaque semaine : le boulanger à la meilleure moyenne.
+  const weekBestBaker = {}
+  Object.entries(rankingMap).forEach(([bakerId, entry]) => {
+    Object.entries(entry.weeks).forEach(([weekNum, scores]) => {
+      const mean = scores.reduce((a, b) => a + b, 0) / scores.length
+      const prev = weekBestBaker[weekNum]
+      if (!prev || mean > prev.mean) {
+        weekBestBaker[weekNum] = { bakerId, mean }
+      }
+    })
+  })
+  const winsByBaker = {}
+  Object.values(weekBestBaker).forEach(w => { winsByBaker[w.bakerId] = (winsByBaker[w.bakerId] || 0) + 1 })
+
   const leaderboard = Object.values(rankingMap).map(entry => {
     const weekMeans = Object.values(entry.weeks).map(w => w.reduce((a, b) => a + b, 0) / w.length)
     const nWeeks = weekMeans.length
@@ -304,8 +318,10 @@ if (!leagueData) return
     const total = nWeeks ? weekMeans.reduce((a, b) => a + b, 0) : 0
     const critAvg = c => (nVotes ? (entry[c] / nVotes).toFixed(1) : '0.0')
     return {
+      bakerId: entry.bakerId,
       username: entry.username,
       weeks: nWeeks,
+      wins: winsByBaker[entry.bakerId] || 0,
       total,
       avgGlobal: nWeeks ? (total / nWeeks).toFixed(1) : '0.0',
       taste: critAvg('taste'),
@@ -590,7 +606,14 @@ if (!leagueData) return
                               {idx === 0 ? <TrophyIcon className="w-4 h-4" /> : idx + 1}
                             </span>
                             <div>
-                              <div className="text-sm font-black text-[var(--ink)]">{entry.username}</div>
+                              <div className="text-sm font-black text-[var(--ink)] flex items-center gap-2 flex-wrap">
+                                {entry.username}
+                                {entry.wins > 0 && (
+                                  <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-wider font-black bg-gradient-to-br from-[var(--accent)] to-[var(--primary)] text-[var(--on-primary)] px-2 py-0.5 rounded-full shadow-xs">
+                                    <TrophyIcon className="w-3 h-3" /> {entry.wins > 1 ? `${entry.wins} cookie d'or` : 'Cookie d\'or'}
+                                  </span>
+                                )}
+                              </div>
                               <div className="text-[10px] uppercase tracking-wider text-[var(--muted)] font-bold">
                                 {idx === 0 ? 'Maître pâtissier' : idx === 1 ? 'Premier dauphin' : idx === 2 ? 'Troisième cuistot' : 'Compétiteur'} · {entry.weeks} sem.
                               </div>
