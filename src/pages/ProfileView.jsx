@@ -22,7 +22,7 @@ export default function ProfileView({ onBack }) {
       if (!user) return
       const { data } = await supabase
         .from('profiles')
-        .select('username')
+        .select('username, theme')
         .eq('id', user.id)
         .maybeSingle()
 
@@ -30,6 +30,12 @@ export default function ProfileView({ onBack }) {
         setUsername(data.username)
       } else if (user.user_metadata?.username) {
         setUsername(user.user_metadata.username)
+      }
+
+      if (data?.theme) {
+        setTheme(data.theme)
+        document.documentElement.dataset.theme = data.theme
+        localStorage.setItem('cc-theme', data.theme)
       }
     }
     fetchUserProfile()
@@ -49,11 +55,14 @@ export default function ProfileView({ onBack }) {
     { id: 'glass', label: 'Verre', swatch: 'bg-[#0a0e17] border border-[var(--border)]' },
   ]
 
-  const selectTheme = (id) => {
+  const selectTheme = async (id) => {
     setTheme(id)
     setThemeOpen(false)
     document.documentElement.dataset.theme = id
     localStorage.setItem('cc-theme', id)
+    if (user) {
+      await supabase.from('profiles').upsert({ id: user.id, theme: id })
+    }
   }
 
   // Mettre à jour le pseudonyme

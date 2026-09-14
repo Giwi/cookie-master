@@ -9,6 +9,7 @@
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   username text,
+  theme text not null default 'choco',
   created_at timestamptz not null default now()
 );
 
