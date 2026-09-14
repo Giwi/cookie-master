@@ -496,18 +496,26 @@ if (!leagueData) return
                 <h2 className="text-xs font-black uppercase tracking-wider text-[var(--ink)] flex items-center gap-1.5">
                   <StarIcon className="w-4 h-4 text-[var(--accent)]" /> Noter la fournée
                 </h2>
-                <select
-                  value={selectedWeekToRate}
-                  onChange={(e) => setSelectedWeekToRate(Number(e.target.value))}
-                  className="bg-[var(--plate)] border border-[var(--border)] text-xs font-bold text-[var(--text)] rounded-xl px-3 py-2 outline-none shadow-inner cursor-pointer max-w-full"
-                >
+                <div className="flex items-center gap-1.5 flex-wrap">
                   {rateableWeeks.map((w) => (
-                      <option key={w} value={w}>
-                        Semaine #{w} {w === currentWeek ? '(Actuelle)' : ''}
-                      </option>
-                    ))
-                  }
-                </select>
+                    <button
+                      key={w}
+                      type="button"
+                      aria-pressed={w === selectedWeekToRate}
+                      onClick={() => setSelectedWeekToRate(w)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${
+                        w === selectedWeekToRate
+                          ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-sm'
+                          : 'bg-[var(--plate)] text-[var(--muted)] border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
+                      }`}
+                    >
+                      Semaine #{w}
+                      {w === currentWeek && (
+                        <span className="ml-1 opacity-80">· en cours</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {selectedWeekToRate > currentWeek ? (
