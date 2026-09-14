@@ -14,7 +14,17 @@ where a.id > b.id
   and a.week_number is not distinct from b.week_number;
 
 -- Replace any earlier index-based attempt, then add the named constraint.
-drop index if exists public.ratings_one_vote_week;
+-- Idempotent: the constraint's backing index carries the same name, so a naive
+-- `drop index` errors (2BP01) on re-run. Only drop when no constraint exists yet.
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'ratings_one_vote_week' and conrelid = 'public.ratings'::regclass
+  ) then
+    execute 'drop index if exists public.ratings_one_vote_week';
+  end if;
+end $$;
 
 -- NULLable week_number honored: Postgres unique treats NULLs as distinct (legacy rows safe).
 do $$

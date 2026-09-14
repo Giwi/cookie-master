@@ -53,11 +53,25 @@ export default function LeagueView({ leagueId, onBack }) {
     setLoading(true)
 
     // Single read: 8 sequential queries collapsed into 1 embed.
-const { data: leagueData, error: leagueError } = await supabase
-  .from('leagues')
-  .select(`...`)
-  .eq('id', leagueId)
-  .maybeSingle()
+    const { data: leagueData, error: leagueError } = await supabase
+      .from('leagues')
+      .select(`
+        *,
+        league_members (
+          user_id,
+          profiles ( id, username )
+        ),
+        league_schedule (
+          *,
+          profiles ( id, username )
+        ),
+        ratings (
+          *,
+          profiles!ratings_user_id_fkey ( id, username )
+        )
+      `)
+      .eq('id', leagueId)
+      .maybeSingle()
 
 setLoading(false)
 
@@ -234,32 +248,25 @@ if (!leagueData) return
     setSubmitting(true)
     setMessage(null)
 
-    const globalScore = Number(calculateAverage(scores))
-
-    const payload = {
-      league_id: leagueId,
-      user_id: user.id,
-      voter_id: user.id,
-      score: globalScore,
-      taste: Number(scores.taste),
-      texture: Number(scores.texture),
-      appearance: Number(scores.appearance),
-      baking: Number(scores.baking),
-      indulgence: Number(scores.indulgence),
-      comment: comment.trim() || null,
-      week_number: Number(selectedWeekToRate)
-    }
-
-    // Atomic: one vote per (voter, league, week). Unique index ratings_one_vote_week in DB.
-    const { error } = await supabase
-      .from('ratings')
-      .upsert([payload], { onConflict: 'voter_id,league_id,week_number' })
+    const { data, error } = await supabase.rpc('submit_rating', {
+      p_league_id: leagueId,
+      p_week_number: Number(selectedWeekToRate),
+      p_taste: Number(scores.taste),
+      p_texture: Number(scores.texture),
+      p_appearance: Number(scores.appearance),
+      p_baking: Number(scores.baking),
+      p_indulgence: Number(scores.indulgence),
+      p_score: Number(calculateAverage(scores)),
+      p_comment: comment.trim() || null
+    })
 
     if (error) {
       setMessage({ type: 'error', text: `Erreur : ${error.message}` })
       setSubmitting(false)
     } else {
-      if (onBack) onBack()
+      setSubmitting(false)
+      fetchData()
+      setMessage({ type: 'success', text: 'Notes envoyées. Merci du retour, le boulanger va rougir !' })
     }
   }
 
@@ -272,10 +279,18 @@ if (!leagueData) return
 
   const filteredRatings = ratings.filter((r) => {
     const rWeek = r.week_number || currentWeek
-    if (rWeek === currentWeek) return false
     if (selectedWeekFilter !== 'all' && rWeek !== Number(selectedWeekFilter)) return false
     return true
   })
+
+  // Semaines notables : le planning de l'année + les semaines déjà notées
+  // (le planning peut être vide pour l'année, ou incomplet si les semaines
+  // passées ne sont pas listées). On dédoublonne et on trie.
+  const rateableWeeks = [...new Set([
+    ...fullSchedule.map(s => s.week_number),
+    ...ratings.map(r => r.week_number || currentWeek)
+  ])].filter(w => w <= currentWeek).sort((a, b) => a - b)
+  if (rateableWeeks.length === 0) rateableWeeks.push(currentWeek)
 
   // Cumul par membre : chaque semaine = moyenne des votes de la semaine. Le total
   // cumule ces moyennes (pas le nombre de jurés, sinon la semaine la plus jugée gagnerait).
@@ -486,11 +501,9 @@ if (!leagueData) return
                   onChange={(e) => setSelectedWeekToRate(Number(e.target.value))}
                   className="bg-[var(--plate)] border border-[var(--border)] text-xs font-bold text-[var(--text)] rounded-xl px-3 py-2 outline-none shadow-inner cursor-pointer max-w-full"
                 >
-                  {fullSchedule
-                    .filter(s => s.week_number <= currentWeek)
-                    .map(s => (
-                      <option key={s.week_number} value={s.week_number}>
-                        Semaine #{s.week_number} {s.week_number === currentWeek ? '(Actuelle)' : ''}
+                  {rateableWeeks.map((w) => (
+                      <option key={w} value={w}>
+                        Semaine #{w} {w === currentWeek ? '(Actuelle)' : ''}
                       </option>
                     ))
                   }
