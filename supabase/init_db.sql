@@ -39,6 +39,7 @@ create table if not exists public.league_schedule (
   year int not null,
   assigned_user_id uuid references public.profiles(id) on delete set null,
   turn_order int,
+  topic text,
   created_at timestamptz not null default now(),
   unique (league_id, week_number, year)
 );
@@ -91,6 +92,7 @@ begin
     execute format('drop policy if exists "league_schedule_member_read" on public.%I', t);
     execute format('drop policy if exists "league_schedule_member_insert" on public.%I', t);
     execute format('drop policy if exists "league_schedule_creator_delete" on public.%I', t);
+    execute format('drop policy if exists "league_schedule_creator_update" on public.%I', t);
     execute format('drop policy if exists "ratings_member_read" on public.%I', t);
     execute format('drop policy if exists "ratings_vote" on public.%I', t);
     execute format('drop policy if exists "ratings_update_own" on public.%I', t);
@@ -160,14 +162,20 @@ create policy "league_members_leave" on public.league_members
   using (public.is_league_member(league_id));
 
 -- league_schedule: members may read; members may insert (auto-assign late joiners);
--- creator may delete. No direct update.
+-- creator may delete; creator may update (weekly theme topic). No direct update by members.
 create policy "league_schedule_member_read" on public.league_schedule
   for select to authenticated
   using (league_id in (select lm.league_id from public.league_members lm where lm.user_id = auth.uid()));
 
 create policy "league_schedule_member_insert" on public.league_schedule
   for insert to authenticated
+  using (league_id in (select lm.league_id from public.league_members lm where lm.user_id = auth.uid()))
   with check (league_id in (select lm.league_id from public.league_members lm where lm.user_id = auth.uid()));
+
+create policy "league_schedule_creator_update" on public.league_schedule
+  for update to authenticated
+  using (league_id in (select id from public.leagues where created_by = auth.uid()))
+  with check (league_id in (select id from public.leagues where created_by = auth.uid()));
 
 create policy "league_schedule_creator_delete" on public.league_schedule
   for delete to authenticated

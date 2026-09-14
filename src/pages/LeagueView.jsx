@@ -277,6 +277,18 @@ if (!leagueData) return
     setTimeout(() => setCopied(false), 2500)
   }
 
+  const handleSaveTopic = async (schedId, topic) => {
+    const { error } = await supabase
+      .from('league_schedule')
+      .update({ topic: topic.trim() || null })
+      .eq('id', schedId)
+    if (error) {
+      console.error('Sauvegarde thème :', error)
+      setMessage({ type: 'error', text: `Impossible d'enregistrer le thème : ${error.message}` })
+    }
+    fetchData()
+  }
+
   const filteredRatings = ratings.filter((r) => {
     const rWeek = r.week_number || currentWeek
     if (selectedWeekFilter !== 'all' && rWeek !== Number(selectedWeekFilter)) return false
@@ -439,10 +451,11 @@ if (!leagueData) return
     )
   }
 
+  const isCreator = user && league.created_by === user.id
+
   return (
     <div className="min-h-screen bg-[radial-gradient(var(--dot)_1px,transparent_1px)] [background-size:18px_18px] p-4 sm:p-6 text-[var(--text)] font-sans">
       <div className="max-w-5xl mx-auto space-y-6">
-        
         <header className="bg-[var(--card)] backdrop-blur p-6 rounded-3xl border border-[var(--border)] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <img 
@@ -517,6 +530,24 @@ if (!leagueData) return
                   ))}
                 </div>
               </div>
+
+              {(() => {
+                const targetSchedule = fullSchedule.find(s => s.week_number === selectedWeekToRate)
+                if (!targetSchedule?.topic) return null
+                return (
+                  <div className="p-3.5 bg-[var(--plate)]/60 border border-[var(--accent)]/30 rounded-2xl text-xs space-y-0.5">
+                    <div className="font-bold uppercase tracking-wider text-[var(--accent)] flex items-center gap-1.5">
+                      <SparklesIcon className="w-3.5 h-3.5" /> Challenge spécial de la semaine
+                    </div>
+                    <div className="text-[var(--text)] font-bold">
+                      Thème : {targetSchedule.topic}
+                    </div>
+                    <div className="text-[var(--soft)] italic">
+                      Le boulanger doit relever ce défi. Bonne chance à lui !
+                    </div>
+                  </div>
+                )
+              })()}
 
               {selectedWeekToRate > currentWeek ? (
                 <div className="p-4 bg-[var(--plate)] border border-[var(--border)] rounded-2xl text-center space-y-1">
@@ -595,9 +626,27 @@ if (!leagueData) return
                   fullSchedule.map((sched) => {
                     const isCurrent = sched.week_number === currentWeek
                     return (
-                      <div key={sched.id} className={`px-4 py-2.5 rounded-2xl border text-xs flex items-center justify-between transition ${isCurrent ? 'bg-[var(--plate-3)] border-[var(--border-strong)] font-bold text-[var(--ink)] shadow-2xs' : 'bg-[var(--plate)]/30 border-[var(--border)]/60 text-[var(--soft)]'}`}>
-                        <span className="flex items-center gap-1.5">Semaine #{sched.week_number} {isCurrent && <><FireIcon className="w-3.5 h-3.5 text-[var(--accent)]" /> C'est le moment !</>}</span>
-                        <span className="font-semibold">{sched.profiles?.username || 'Collègue'}</span>
+                      <div key={sched.id} className={`px-4 py-2.5 rounded-2xl border text-xs flex items-center justify-between gap-2 transition ${isCurrent ? 'bg-[var(--plate-3)] border-[var(--border-strong)] font-bold text-[var(--ink)] shadow-2xs' : 'bg-[var(--plate)]/30 border-[var(--border)]/60 text-[var(--soft)]'}`}>
+                        <div className="min-w-0 space-y-1">
+                          <span className="flex items-center gap-1.5">Semaine #{sched.week_number} {isCurrent && <><FireIcon className="w-3.5 h-3.5 text-[var(--accent)]" /> C'est le moment !</>}</span>
+                          <span className="font-semibold block">{sched.profiles?.username || 'Collègue'}</span>
+                          {sched.topic && (
+                            <span className="inline-block bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/30 px-2 py-0.5 rounded-lg font-bold text-[11px]">
+                              Thème : {sched.topic}
+                            </span>
+                          )}
+                          {!sched.topic && isCreator && (
+                            <span className="inline-block text-[var(--muted)] italic text-[11px]">Aucun thème</span>
+                          )}
+                        </div>
+                        {isCreator && (
+                          <input
+                            defaultValue={sched.topic || ''}
+                            onBlur={(e) => e.target.value !== (sched.topic || '') && handleSaveTopic(sched.id, e.target.value)}
+                            placeholder="Thème…"
+                            className="w-28 shrink-0 text-center bg-[var(--card)] border border-[var(--border)] rounded-xl px-2 py-1 text-[11px] font-bold text-[var(--text)] outline-none focus:border-[var(--accent)] shadow-inner"
+                          />
+                        )}
                       </div>
                     )
                   })
