@@ -32,6 +32,11 @@ export const AuthProvider = ({ children }) => {
       }
 
       setProfile(data)
+
+      if (data?.theme) {
+        document.documentElement.dataset.theme = data.theme
+        localStorage.setItem('cc-theme', data.theme)
+      }
     } catch (err) {
       console.error('Erreur chargement profil :', err.message)
     }
